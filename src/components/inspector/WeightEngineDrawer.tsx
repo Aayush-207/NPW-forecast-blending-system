@@ -16,6 +16,15 @@ import {
   MapPin,
   Info,
 } from "lucide-react";
+import {
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+} from "recharts";
 
 /* ─── Model weight bar colors ─── */
 const WEIGHT_COLORS: Record<string, string> = {
@@ -208,6 +217,12 @@ export default function WeightEngineDrawer() {
     ([, a], [, b]) => b - a
   );
 
+  // Data for Radar Chart
+  const radarData = sortedModels.map(([key, weight]) => ({
+    model: MODEL_LABELS[key as keyof typeof MODEL_LABELS] || key.toUpperCase(),
+    weight: Math.round(weight * 100),
+  }));
+
   return (
     <div className="w-[340px] flex-shrink-0 bg-midnight-slate/50 border-r border-slate-border flex flex-col overflow-hidden">
       {/* ─── Station Header ─── */}
@@ -240,6 +255,38 @@ export default function WeightEngineDrawer() {
 
       {/* ─── Scrollable Content ─── */}
       <div className="flex-1 overflow-y-auto p-2.5 space-y-2.5">
+        
+        {/* Radar Chart for Weights */}
+        <div className="panel p-3">
+          <div className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2 flex items-center gap-1.5">
+            <Cpu className="w-3 h-3 text-monsoon-cyan" />
+            Model Influence Vector
+          </div>
+          <div className="h-[200px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                <PolarGrid stroke="#3f3f46" />
+                <PolarAngleAxis 
+                  dataKey="model" 
+                  tick={{ fill: '#a1a1aa', fontSize: 9 }} 
+                />
+                <PolarRadiusAxis angle={30} domain={[0, 40]} tick={false} axisLine={false} />
+                <Radar
+                  name="Weight %"
+                  dataKey="weight"
+                  stroke="#3b82f6"
+                  fill="#60a5fa"
+                  fillOpacity={0.4}
+                />
+                <RechartsTooltip 
+                  contentStyle={{ backgroundColor: '#18181b', border: '1px solid #3f3f46', fontSize: '12px' }}
+                  itemStyle={{ color: '#60a5fa' }}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
         {/* Model Cards */}
         {sortedModels.map(([key, weight]) => (
           <ModelCard

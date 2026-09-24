@@ -29,10 +29,10 @@ import {
 
 /* ─── Rainfall → Color mapping ─── */
 function rainColor(mm: number): string {
-  if (mm >= 204.5) return "#E63946";
+  if (mm >= 204.5) return "#f87171";
   if (mm >= 115.6) return "#FFB703";
   if (mm >= 64.5) return "#FF6B35";
-  if (mm >= 35.5) return "#00F2FE";
+  if (mm >= 35.5) return "#3b82f6";
   if (mm >= 7.5) return "#06D6A0";
   return "#3A86FF";
 }
@@ -62,7 +62,7 @@ function getStationColor(station: WeatherStation, mode: LayerMode): string {
         ? "#FFB703"
         : "#06D6A0";
     default:
-      return "#00F2FE";
+      return "#3b82f6";
   }
 }
 
@@ -242,7 +242,7 @@ export default function MainMap() {
               {/* Coverage Area Circle */}
               <Circle
                 center={[station.lat, station.lng]}
-                radius={station.coverage_radius_km * 1000}
+                radius={(station.coverage_radius_km || 10) * 1000}
                 pathOptions={{
                   color: isSelected ? "#38bdf8" : color,
                   fillColor: isSelected ? "#38bdf8" : color,
@@ -256,7 +256,7 @@ export default function MainMap() {
                 center={[station.lat, station.lng]}
                 radius={radius}
               pathOptions={{
-                color: isSelected ? "#00F2FE" : color,
+                color: isSelected ? "#3b82f6" : color,
                 fillColor: color,
                 fillOpacity: isSelected ? 0.9 : 0.7,
                 weight: isSelected ? 3 : hasAlert ? 2 : 1.5,
@@ -319,7 +319,7 @@ export default function MainMap() {
               center={[station.lat, station.lng]}
               radius={28}
               pathOptions={{
-                color: "#E63946",
+                color: "#f87171",
                 fillColor: "transparent",
                 fillOpacity: 0,
                 weight: 1.5,

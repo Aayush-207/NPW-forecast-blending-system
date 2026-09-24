@@ -5,16 +5,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        obsidian: "#0f172a", // slate-900
-        "midnight-slate": "#1e293b", // slate-800
-        "frosted-slate": "#334155", // slate-700
-        "slate-border": "#475569", // slate-600
-        "monsoon-cyan": "#38bdf8", // sky-400
-        "atlantic-blue": "#2563eb", // blue-600
-        "quantum-violet": "#8b5cf6", // violet-500
-        "neural-emerald": "#10b981", // emerald-500
-        "amber-alert": "#f59e0b", // amber-500
-        "crimson-hazard": "#ef4444", // red-500
+        obsidian: "#09090b", // zinc-950
+        "midnight-slate": "#18181b", // zinc-900
+        "frosted-slate": "#27272a", // zinc-800
+        "slate-border": "#3f3f46", // zinc-700
+        "monsoon-cyan": "#60a5fa", // blue-400
+        "atlantic-blue": "#3b82f6", // blue-500
+        "quantum-violet": "#818cf8", // indigo-400
+        "neural-emerald": "#34d399", // emerald-400
+        "amber-alert": "#fbbf24", // amber-400
+        "crimson-hazard": "#f87171", // red-400
       },
       fontFamily: {
         sans: ["IBM Plex Sans", "system-ui", "sans-serif"],
