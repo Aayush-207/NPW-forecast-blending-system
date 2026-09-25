@@ -381,15 +381,15 @@ export default function MainMap() {
       <MapContainer
         center={[18.5204, 73.8567]}
         zoom={11}
-        className="w-full h-full"
+        className="w-full h-full af-dark-map"
         zoomControl={false}
         attributionControl={false}
       >
         {/* CartoDB Dark Matter — free, no API key, genuinely dark */}
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          subdomains="abcd"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          subdomains={["a","b","c"]}
           maxZoom={19}
         />
 
@@ -461,3 +461,5 @@ export default function MainMap() {
     </div>
   );
 }
+
+

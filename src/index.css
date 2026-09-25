@@ -192,3 +192,19 @@
     animation: af-fadein 0.5s ease both;
   }
 }
+
+/* ── Dark map: CSS-invert OSM tiles only (no API key, free forever) ─────── */
+/* Only the tile layer gets inverted; markers, overlays, popups stay intact */
+.af-dark-map .leaflet-tile-pane {
+  filter: invert(100%) hue-rotate(180deg) brightness(92%) contrast(89%) saturate(120%);
+}
+
+/* Attribution pill — keep it readable on dark bg */
+.af-dark-map .leaflet-control-attribution {
+  background: rgba(9,9,11,0.75) !important;
+  color: #71717a !important;
+  font-size: 9px !important;
+}
+.af-dark-map .leaflet-control-attribution a {
+  color: #60a5fa !important;
+}
