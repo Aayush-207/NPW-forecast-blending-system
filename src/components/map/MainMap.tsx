@@ -213,9 +213,10 @@ const LAYERS: { id: LayerMode; label: string; icon: React.ReactNode }[] = [
   { id: "trust",        label: "Trust Map",    icon: <Shield className="w-3.5 h-3.5" /> },
   { id: "disagreement", label: "Disagreement", icon: <BarChart3 className="w-3.5 h-3.5" /> },
   { id: "risk",         label: "90th % Risk",  icon: <AlertTriangle className="w-3.5 h-3.5" /> },
+  { id: "coverage",     label: "Coverage",     icon: <Eye className="w-3.5 h-3.5" /> },
 ];
 
-function LayerControls({ showCoverage, onToggleCoverage }: { showCoverage: boolean; onToggleCoverage: () => void }) {
+function LayerControls() {
   const { layerMode, setLayerMode } = useWeatherStore();
   return (
     <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-1.5" style={{ animation: "af-fadein 0.6s ease both" }}>
@@ -230,11 +231,6 @@ function LayerControls({ showCoverage, onToggleCoverage }: { showCoverage: boole
           </button>
         ))}
       </div>
-      <button onClick={onToggleCoverage}
-        className={`flex items-center gap-2 px-2.5 py-1.5 text-[11px] rounded-xl border transition-all duration-300 panel ${showCoverage ? "bg-quantum-violet/10 text-quantum-violet border-quantum-violet/40" : "text-slate-400 border-slate-border hover:text-slate-100"}`}>
-        {showCoverage ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-        {showCoverage ? "Hide Coverage" : "Show Coverage"}
-      </button>
     </div>
   );
 }
@@ -243,7 +239,8 @@ function LayerControls({ showCoverage, onToggleCoverage }: { showCoverage: boole
 /*  Map 1 — Leaflet OSM (CSS dark)                            */
 /* ─────────────────────────────────────────────────────────── */
 
-function OSMMap({ showCoverage }: { showCoverage: boolean }) {
+function OSMMap() {
+  const showCoverage = useWeatherStore(s => s.layerMode) === "coverage";
   const { forecast, selectStation, selectedStationId, layerMode } = useWeatherStore();
   const stations = forecast?.stations ?? [];
   return (
@@ -285,7 +282,8 @@ function OSMMap({ showCoverage }: { showCoverage: boolean }) {
 /*  Map 2 — Google Maps (dark style)                           */
 /* ─────────────────────────────────────────────────────────── */
 
-function GoogleMapView({ showCoverage }: { showCoverage: boolean }) {
+function GoogleMapView() {
+  const showCoverage = useWeatherStore(s => s.layerMode) === "coverage";
   const { forecast, selectStation, selectedStationId, layerMode } = useWeatherStore();
   const stations = forecast?.stations ?? [];
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -406,15 +404,15 @@ function MapToggle({ mapType, onToggle }: { mapType: MapType; onToggle: (t: MapT
 
 export default function MainMap() {
   const [mapType, setMapType] = useState<MapType>("osm");
-  const [showCoverage, setShowCoverage] = useState(false);
 
   return (
     <div className="relative flex-1 w-full h-full">
-      {mapType === "osm" ? <OSMMap showCoverage={showCoverage} /> : <GoogleMapView showCoverage={showCoverage} />}
-      <LayerControls showCoverage={showCoverage} onToggleCoverage={() => setShowCoverage(v => !v)} />
+      {mapType === "osm" ? <OSMMap /> : <GoogleMapView />}
+      <LayerControls />
       <MapToggle mapType={mapType} onToggle={setMapType} />
       <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-obsidian/50 to-transparent pointer-events-none z-[400]" />
       <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-obsidian/30 to-transparent pointer-events-none z-[400]" />
     </div>
   );
 }
+

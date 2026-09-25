@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 import { useWeatherStore } from "./store/useWeatherStore";
 import Layout from "./components/layout/Layout";
 import type { WeatherStation } from "./types/weather";
@@ -7,8 +7,8 @@ const MOCK_STATIONS: WeatherStation[] = [
   {
     id: "pune-shiva",
     name: "Shivajinagar",
-    lat: 18.5314,
-    lng: 73.8446,
+    lat: 18.5308,
+    lng: 73.8475,
     elevation_m: 560,
     terrain_type: "Urban Basin",
     coverage_radius_km: 10,
@@ -41,8 +41,8 @@ const MOCK_STATIONS: WeatherStation[] = [
   {
     id: "pune-pashan",
     name: "Pashan",
-    lat: 18.5366,
-    lng: 73.7937,
+    lat: 18.5353,
+    lng: 73.7828,
     elevation_m: 580,
     terrain_type: "Suburban Hill",
     coverage_radius_km: 8,
@@ -75,8 +75,8 @@ const MOCK_STATIONS: WeatherStation[] = [
   {
     id: "pune-lohegaon",
     name: "Lohegaon",
-    lat: 18.5793,
-    lng: 73.9089,
+    lat: 18.5960,
+    lng: 73.9247,
     elevation_m: 592,
     terrain_type: "Airport/Plains",
     coverage_radius_km: 12,
@@ -109,8 +109,8 @@ const MOCK_STATIONS: WeatherStation[] = [
   {
     id: "pune-lavale",
     name: "Lavale",
-    lat: 18.5387,
-    lng: 73.7291,
+    lat: 18.5235,
+    lng: 73.7184,
     elevation_m: 630,
     terrain_type: "Hilly Fringe",
     coverage_radius_km: 15,
@@ -138,13 +138,13 @@ const MOCK_STATIONS: WeatherStation[] = [
     active_alert: "Heavy rainfall likely over hilly terrain. Risk of minor landslides.",
     dominant_model: "WRF (3km)",
     dominant_family: "Physics",
-    shap_explanation: "WRF captures fine-scale orographic uplift. High disagreement—treat with caution.",
+    shap_explanation: "WRF captures fine-scale orographic uplift. High disagreementâ€”treat with caution.",
   },
   {
     id: "pune-magarpatta",
     name: "Magarpatta City",
-    lat: 18.5173,
-    lng: 73.9260,
+    lat: 18.5140,
+    lng: 73.9250,
     elevation_m: 575,
     terrain_type: "Urban Heat Island",
     coverage_radius_km: 6,
@@ -177,8 +177,8 @@ const MOCK_STATIONS: WeatherStation[] = [
   {
     id: "pune-chinchwad",
     name: "Chinchwad",
-    lat: 18.6298,
-    lng: 73.7997,
+    lat: 18.6100,
+    lng: 73.8800,
     elevation_m: 570,
     terrain_type: "Industrial/Urban",
     coverage_radius_km: 10,
@@ -234,3 +234,4 @@ export default function App() {
 
   return <Layout />;
 }
+

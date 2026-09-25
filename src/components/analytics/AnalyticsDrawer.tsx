@@ -14,7 +14,7 @@ import {
   Shield,
   BarChart3,
   AlertTriangle,
-  Cpu
+  Cpu, Eye
 } from "lucide-react";
 import {
   Radar,
@@ -115,7 +115,7 @@ function ConsensusView({ station, allStations }: { station: any; allStations: an
           <CloudRain className="w-3 h-3 text-monsoon-cyan" />
           All Stations (Rainfall & Temp)
         </div>
-        <div className="overflow-y-auto space-y-1 pr-1" style={{ maxHeight: '250px' }}>
+        <div className="space-y-1">
           {sortedStations.map((s) => (
             <div key={s.id} className={`flex items-center justify-between p-2 rounded text-xs border ${station?.id === s.id ? 'bg-monsoon-cyan/10 border-monsoon-cyan/40' : 'bg-obsidian border-slate-border'}`}>
               <span className="font-semibold text-slate-200">{s.name}</span>
@@ -161,7 +161,7 @@ function TrustView({ station, allStations }: { station: any; allStations: any[] 
 
       <div className="panel p-3 bg-midnight-slate/50">
         <div className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">Dominant Models Across Region</div>
-        <div className="space-y-1 max-h-[250px] overflow-y-auto">
+        <div className="space-y-1">
           {sortedByTrust.map((s) => (
             <div key={s.id} className="flex items-center justify-between p-2 rounded text-xs bg-obsidian border border-slate-border">
               <span className="text-slate-300">{s.name}</span>
@@ -189,7 +189,7 @@ function DisagreementView({ station, allStations }: { station: any; allStations:
 
       <div className="panel p-3 bg-midnight-slate/50">
         <div className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">Highest Uncertainty Regions</div>
-        <div className="space-y-1 max-h-[300px] overflow-y-auto">
+        <div className="space-y-1">
           {sortedByDisagreement.map((s) => (
             <div key={s.id} className={`flex items-center justify-between p-2 rounded text-xs border ${station?.id === s.id ? 'bg-amber-alert/10 border-amber-alert/40' : 'bg-obsidian border-slate-border'}`}>
               <span className="font-semibold text-slate-200">{s.name}</span>
@@ -219,7 +219,7 @@ function RiskView({ station, allStations }: { station: any; allStations: any[] }
 
       <div className="panel p-3 bg-midnight-slate/50">
         <div className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2">Severe Risk Zones (Worst Case)</div>
-        <div className="space-y-1 max-h-[300px] overflow-y-auto">
+        <div className="space-y-1">
           {sortedByRisk.map((s) => (
             <div key={s.id} className={`flex items-center justify-between p-2 rounded text-xs border ${station?.id === s.id ? 'bg-crimson-hazard/10 border-crimson-hazard/40' : 'bg-obsidian border-slate-border'}`}>
               <span className="font-semibold text-slate-200">{s.name}</span>
@@ -231,6 +231,73 @@ function RiskView({ station, allStations }: { station: any; allStations: any[] }
               </div>
             </div>
           ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CoverageView({ station, allStations }: { station: any; allStations: any[] }) {
+  const maxRadius = Math.max(...allStations.map(s => s.coverage_radius_km || 10));
+  
+  // Sort by coverage radius descending
+  const sortedByCoverage = [...allStations].sort((a, b) => (b.coverage_radius_km || 10) - (a.coverage_radius_km || 10));
+
+  return (
+    <div className="space-y-3" style={{ animation: 'af-fadein 0.4s ease both' }}>
+      <div className="panel p-3 bg-midnight-slate/50">
+        <div className="flex items-center gap-2 mb-2">
+          <Eye className="w-4 h-4 text-quantum-violet" />
+          <h3 className="text-xs font-bold text-slate-100 uppercase tracking-widest">Sensor Topology</h3>
+        </div>
+        <p className="text-[10px] text-slate-400 leading-relaxed">
+          Effective spatial observation metrics. The coverage area is calculated based on the sensor's effective detection radius (A = πr²).
+        </p>
+      </div>
+
+      <div className="panel p-3 bg-midnight-slate/50 flex flex-col flex-1">
+        <div className="grid grid-cols-12 gap-2 text-[9px] uppercase tracking-widest text-slate-500 font-semibold mb-2 px-2">
+          <div className="col-span-5">Station</div>
+          <div className="col-span-3 text-right">Radius</div>
+          <div className="col-span-4 text-right">Area (km²)</div>
+        </div>
+        
+        <div className="space-y-1.5">
+          {sortedByCoverage.map((s) => {
+            const r = s.coverage_radius_km || 10;
+            const area = Math.round(Math.PI * Math.pow(r, 2));
+            const pct = (r / maxRadius) * 100;
+            const isSelected = station?.id === s.id;
+            
+            return (
+              <div 
+                key={s.id} 
+                className={`relative p-2 rounded border transition-colors ${isSelected ? 'bg-quantum-violet/10 border-quantum-violet/30' : 'bg-obsidian border-slate-border hover:border-slate-600'}`}
+              >
+                {/* Background Bar */}
+                <div 
+                  className={`absolute top-0 left-0 bottom-0 opacity-10 rounded-sm transition-all duration-500 ease-out ${isSelected ? 'bg-quantum-violet' : 'bg-slate-500'}`} 
+                  style={{ width: `${pct}%` }} 
+                />
+                
+                <div className="relative grid grid-cols-12 gap-2 items-center z-10">
+                  <div className="col-span-5 font-semibold text-slate-200 text-[11px] truncate" title={s.name}>
+                    {s.name}
+                  </div>
+                  <div className="col-span-3 text-right">
+                    <span className={`font-mono text-[11px] font-bold ${isSelected ? 'text-quantum-violet' : 'text-slate-300'}`}>
+                      {r} <span className="text-[9px] text-slate-500 font-sans font-normal">km</span>
+                    </span>
+                  </div>
+                  <div className="col-span-4 text-right">
+                    <span className={`font-mono text-[11px] font-bold ${isSelected ? 'text-quantum-violet' : 'text-slate-400'}`}>
+                      {area.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -255,6 +322,8 @@ export default function AnalyticsDrawer() {
         return <DisagreementView station={selectedStation} allStations={allStations} />;
       case "risk":
         return <RiskView station={selectedStation} allStations={allStations} />;
+      case "coverage":
+        return <CoverageView station={selectedStation} allStations={allStations} />;
       default:
         return null;
     }
@@ -266,6 +335,7 @@ export default function AnalyticsDrawer() {
       case "trust": return { icon: <Shield className="w-4 h-4 text-neural-emerald" />, title: "Trust Map Analysis" };
       case "disagreement": return { icon: <BarChart3 className="w-4 h-4 text-amber-alert" />, title: "Disagreement Matrix" };
       case "risk": return { icon: <AlertTriangle className="w-4 h-4 text-crimson-hazard" />, title: "Risk Assessment" };
+      case "coverage": return { icon: <Eye className="w-4 h-4 text-quantum-violet" />, title: "Coverage Toplogy" };
       default: return { icon: <Layers className="w-4 h-4" />, title: "Layer Analytics" };
     }
   };

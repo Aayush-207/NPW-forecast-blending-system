@@ -84,7 +84,7 @@ export interface HealthResponse {
   last_cycle: string;
 }
 
-export type LayerMode = "consensus" | "trust" | "disagreement" | "risk";
+export type LayerMode = "consensus" | "trust" | "disagreement" | "risk" | "coverage";
 
 export const MODEL_COLORS: Record<string, string> = {
   gfs: "#3A86FF",
