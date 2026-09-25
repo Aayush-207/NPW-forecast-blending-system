@@ -1,75 +1,31 @@
-# React + TypeScript + Vite
+# AtmosFusion — Hybrid AI-NWP Multi-Model Forecast Blending System
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Overview
+AtmosFusion is a platform built for NCMRWF / Ministry of Earth Sciences (MoES) to blend physics-based NWP models (GFS, ECMWF, NCUM, WRF) with AI-based weather models (GraphCast, AIFS) using dynamic cell-by-cell weighting.
 
-Currently, two official plugins are available:
+## Features
+- Real-time Multi-Model Consensus Blending
+- Interactive 2D/3D Mapping (OpenStreetMap & Google Maps)
+- SHAP Explainability for Weight Assignments
+- Alert Tracking for Heavy Rainfall Events
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+## Quickstart
+### Backend
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+### Frontend
+```bash
+npm install
+npm run dev
+```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+## Environment Variables
+Create a `.env` file in the root directory:
+```
+VITE_GOOGLE_MAPS_API_KEY=your_key_here
 ```

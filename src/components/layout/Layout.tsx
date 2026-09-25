@@ -3,6 +3,8 @@ import MainMap from "../map/MainMap";
 import WeightEngineDrawer from "../inspector/WeightEngineDrawer";
 import AnalyticsDrawer from "../analytics/AnalyticsDrawer";
 
+import ScorecardTray from "../scorecard/ScorecardTray";
+
 export default function Layout() {
   return (
     <>
@@ -11,9 +13,12 @@ export default function Layout() {
         {/* Left Drawer */}
         <WeightEngineDrawer />
 
-        {/* Center Map */}
-        <main className="flex-1 relative bg-obsidian h-full">
-          <MainMap />
+        {/* Center Content */}
+        <main className="flex-1 flex flex-col relative bg-obsidian h-full">
+          <div className="flex-1 relative">
+            <MainMap />
+          </div>
+          <ScorecardTray />
         </main>
 
         {/* Right Drawer */}

@@ -14,7 +14,7 @@ import {
   Shield,
   BarChart3,
   AlertTriangle,
-  Cpu, Eye
+  Cpu, Eye, MapPin
 } from "lucide-react";
 import {
   Radar,
@@ -239,62 +239,98 @@ function RiskView({ station, allStations }: { station: any; allStations: any[] }
 
 function CoverageView({ station, allStations }: { station: any; allStations: any[] }) {
   const maxRadius = Math.max(...allStations.map(s => s.coverage_radius_km || 10));
+  const maxArea = Math.round(Math.PI * Math.pow(maxRadius, 2));
   
   // Sort by coverage radius descending
   const sortedByCoverage = [...allStations].sort((a, b) => (b.coverage_radius_km || 10) - (a.coverage_radius_km || 10));
 
   return (
-    <div className="space-y-3" style={{ animation: 'af-fadein 0.4s ease both' }}>
-      <div className="panel p-3 bg-midnight-slate/50">
-        <div className="flex items-center gap-2 mb-2">
-          <Eye className="w-4 h-4 text-quantum-violet" />
-          <h3 className="text-xs font-bold text-slate-100 uppercase tracking-widest">Sensor Topology</h3>
+    <div className="space-y-4 pt-1" style={{ animation: 'af-fadein 0.4s ease both' }}>
+      {/* Header matching the image */}
+      <div className="mb-8 px-1">
+        <div className="text-[9px] font-bold text-slate-500 tracking-widest uppercase mb-1.5">Stations Overview</div>
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-[17px] font-bold text-slate-100 leading-tight">Station Radius & Area</h2>
+            <p className="text-[10px] text-slate-400 mt-1">Coverage radius and total area for each station</p>
+          </div>
+          <div className="flex items-center gap-3 border border-slate-700/50 rounded-lg px-2.5 py-1.5 bg-obsidian/40 shadow-sm">
+            <div className="flex items-center gap-1.5">
+               <div className="w-3.5 h-3.5 rounded-full border border-slate-400"></div>
+               <div className="text-[8px] text-slate-300 leading-tight">Radius<br/><span className="text-slate-500 font-mono">(km)</span></div>
+            </div>
+            <div className="w-px h-5 bg-slate-700"></div>
+            <div className="flex items-center gap-1.5">
+               <div className="w-3.5 h-3.5 rounded-full border border-quantum-violet bg-quantum-violet/20"></div>
+               <div className="text-[8px] text-slate-300 leading-tight">Area<br/><span className="text-slate-500 font-mono">(km²)</span></div>
+            </div>
+          </div>
         </div>
-        <p className="text-[10px] text-slate-400 leading-relaxed">
-          Effective spatial observation metrics. The coverage area is calculated based on the sensor's effective detection radius (A = πr²).
-        </p>
       </div>
 
-      <div className="panel p-3 bg-midnight-slate/50 flex flex-col flex-1">
-        <div className="grid grid-cols-12 gap-2 text-[9px] uppercase tracking-widest text-slate-500 font-semibold mb-2 px-2">
-          <div className="col-span-5">Station</div>
-          <div className="col-span-3 text-right">Radius</div>
-          <div className="col-span-4 text-right">Area (km²)</div>
-        </div>
+      {/* Timeline Layout */}
+      <div className="relative pb-6 px-1">
+        {/* Main Vertical Line */}
+        <div className="absolute left-[200px] top-6 bottom-6 w-px bg-slate-700/50 z-0"></div>
+        <div className="absolute left-[198.5px] top-0 w-1.5 h-1.5 rounded-full border border-slate-500 bg-obsidian z-0"></div>
+        <div className="absolute left-[198.5px] bottom-0 w-1.5 h-1.5 rounded-full border border-slate-500 bg-obsidian z-0"></div>
         
-        <div className="space-y-1.5">
-          {sortedByCoverage.map((s) => {
+        <div className="space-y-6">
+          {sortedByCoverage.map((s, idx) => {
             const r = s.coverage_radius_km || 10;
             const area = Math.round(Math.PI * Math.pow(r, 2));
-            const pct = (r / maxRadius) * 100;
             const isSelected = station?.id === s.id;
             
+            // Calculate circle size between 44px and 72px based on area relative to maxArea
+            const minSize = 44;
+            const maxSize = 72;
+            const circleSize = minSize + ((area / maxArea) * (maxSize - minSize));
+
             return (
-              <div 
-                key={s.id} 
-                className={`relative p-2 rounded border transition-colors ${isSelected ? 'bg-quantum-violet/10 border-quantum-violet/30' : 'bg-obsidian border-slate-border hover:border-slate-600'}`}
-              >
-                {/* Background Bar */}
-                <div 
-                  className={`absolute top-0 left-0 bottom-0 opacity-10 rounded-sm transition-all duration-500 ease-out ${isSelected ? 'bg-quantum-violet' : 'bg-slate-500'}`} 
-                  style={{ width: `${pct}%` }} 
-                />
+              <div key={s.id} className="relative grid grid-cols-[135px_131px_82px] items-center w-full" style={{ animation: `af-fadein 0.4s ease ${idx * 0.1}s both` }}>
                 
-                <div className="relative grid grid-cols-12 gap-2 items-center z-10">
-                  <div className="col-span-5 font-semibold text-slate-200 text-[11px] truncate" title={s.name}>
-                    {s.name}
+                {/* Horizontal Connector */}
+                <div className="absolute left-[135px] right-[82px] h-px bg-slate-700/50 z-0"></div>
+                {/* Tiny connection dots on the horizontal line */}
+                <div className="absolute left-[142px] top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-slate-500 z-0"></div>
+                <div className="absolute right-[89px] top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-slate-500 z-0"></div>
+                
+                {/* Left Box: Name & Radius */}
+                <div className={`relative z-10 flex items-center justify-between w-[135px] p-2.5 rounded-lg border transition-all ${isSelected ? 'border-quantum-violet shadow-[0_0_10px_rgba(131,56,236,0.15)] bg-obsidian' : 'border-slate-700 bg-obsidian'}`}>
+                  <div className="flex items-center gap-1.5 truncate pr-1">
+                    <MapPin className={`w-3.5 h-3.5 flex-shrink-0 ${isSelected ? 'text-quantum-violet' : 'text-slate-400'}`} />
+                    <span className={`text-[11px] font-bold truncate ${isSelected ? 'text-slate-100' : 'text-slate-300'}`}>{s.name}</span>
                   </div>
-                  <div className="col-span-3 text-right">
-                    <span className={`font-mono text-[11px] font-bold ${isSelected ? 'text-quantum-violet' : 'text-slate-300'}`}>
-                      {r} <span className="text-[9px] text-slate-500 font-sans font-normal">km</span>
-                    </span>
-                  </div>
-                  <div className="col-span-4 text-right">
-                    <span className={`font-mono text-[11px] font-bold ${isSelected ? 'text-quantum-violet' : 'text-slate-400'}`}>
-                      {area.toLocaleString()}
-                    </span>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <div className={`w-3 h-3 rounded-full border ${isSelected ? 'border-slate-300' : 'border-slate-500'}`}></div>
+                    <span className={`text-[9px] font-mono whitespace-nowrap ${isSelected ? 'text-slate-200' : 'text-slate-400'}`}>{r} km</span>
                   </div>
                 </div>
+
+                {/* Center Circle: Area */}
+                <div className="relative z-10 flex items-center justify-center w-full h-[76px]">
+                  <div 
+                     className={`absolute rounded-full border flex items-center justify-center transition-all ${isSelected ? 'border-quantum-violet bg-[#231540] shadow-[0_0_20px_rgba(131,56,236,0.4)]' : 'border-slate-400 bg-obsidian/90 backdrop-blur'}`}
+                     style={{ width: `${circleSize}px`, height: `${circleSize}px` }}
+                  >
+                     <div className="flex flex-col items-center justify-center leading-none">
+                       <span className={`text-[12px] font-bold font-mono ${isSelected ? 'text-slate-100' : 'text-slate-200'}`}>{area}</span>
+                       <span className={`text-[8px] mt-0.5 ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>km²</span>
+                     </div>
+                  </div>
+                  {/* small connection dots on the vertical axis (optional) */}
+                  <div className="absolute top-[-4px] left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-slate-500"></div>
+                  <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-slate-500"></div>
+                </div>
+
+                {/* Right Box: Area */}
+                <div className={`relative z-10 flex flex-col justify-center w-[82px] px-3 py-2.5 rounded-lg border transition-all ${isSelected ? 'border-slate-600 bg-obsidian' : 'border-slate-700 bg-obsidian'}`}>
+                  <div className={`text-[12px] font-bold font-mono leading-tight ${isSelected ? 'text-slate-100' : 'text-slate-200'}`}>
+                    {area} <span className="text-[10px] font-sans font-normal text-slate-400">km²</span>
+                  </div>
+                  <div className="text-[8px] tracking-widest text-slate-500 uppercase mt-0.5">Area</div>
+                </div>
+                
               </div>
             );
           })}
@@ -335,7 +371,7 @@ export default function AnalyticsDrawer() {
       case "trust": return { icon: <Shield className="w-4 h-4 text-neural-emerald" />, title: "Trust Map Analysis" };
       case "disagreement": return { icon: <BarChart3 className="w-4 h-4 text-amber-alert" />, title: "Disagreement Matrix" };
       case "risk": return { icon: <AlertTriangle className="w-4 h-4 text-crimson-hazard" />, title: "Risk Assessment" };
-      case "coverage": return { icon: <Eye className="w-4 h-4 text-quantum-violet" />, title: "Coverage Toplogy" };
+      case "coverage": return { icon: <Eye className="w-4 h-4 text-quantum-violet" />, title: "Coverage Topology" };
       default: return { icon: <Layers className="w-4 h-4" />, title: "Layer Analytics" };
     }
   };
@@ -356,3 +392,4 @@ export default function AnalyticsDrawer() {
     </div>
   );
 }
+

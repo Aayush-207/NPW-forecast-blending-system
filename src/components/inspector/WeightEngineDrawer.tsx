@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AtmosFusion — Left Drawer: Model Referee & Dynamic Weight Engine
  */
 
@@ -28,13 +28,6 @@ import {
 /* --- Location dropdown data --- */
 const LOCATIONS = [
   { id: "pune",        label: "Pune Metropolitan",          region: "Maharashtra" },
-  { id: "mumbai",      label: "Mumbai",                     region: "Maharashtra" },
-  { id: "nashik",      label: "Nashik",                     region: "Maharashtra" },
-  { id: "kolhapur",    label: "Kolhapur",                   region: "Maharashtra" },
-  { id: "aurangabad",  label: "Chhatrapati Sambhajinagar",  region: "Maharashtra" },
-  { id: "solapur",     label: "Solapur",                    region: "Maharashtra" },
-  { id: "satara",      label: "Satara",                     region: "Maharashtra" },
-  { id: "latur",       label: "Latur",                      region: "Maharashtra" },
 ];
 
 function LocationDropdown() {

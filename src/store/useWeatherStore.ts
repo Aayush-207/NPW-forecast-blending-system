@@ -1,8 +1,3 @@
-/**
- * AtmosFusion — Global State Store (Zustand)
- * Manages active station, layer mode, lead day, and scenario preset.
- */
-
 import { create } from "zustand";
 import type {
   WeatherStation,
@@ -19,7 +14,7 @@ interface WeatherState {
   quantileCurve: QuantileCurvePoint[];
 
   // Controls
-  selectedStationId: string;
+  selectedStationId: string | null;
   layerMode: LayerMode;
   leadDay: number;
   scenarioPreset: string;
@@ -44,7 +39,7 @@ export const useWeatherStore = create<WeatherState>((set, get) => ({
   scorecard: [],
   quantileCurve: [],
 
-  selectedStationId: "pune-shiva",
+  selectedStationId: null,
   layerMode: "consensus",
   leadDay: 1,
   scenarioPreset: "pune-monsoon",
@@ -53,22 +48,27 @@ export const useWeatherStore = create<WeatherState>((set, get) => ({
   selectedStation: null,
 
   setForecast: (f) =>
-    set({
+    set((state) => ({
       forecast: f,
       selectedStation:
-        f.stations.find((s) => s.id === get().selectedStationId) ??
-        f.stations[0],
-    }),
+        f.stations.find((s) => s.id === state.selectedStationId) ??
+        f.stations[0] ?? null,
+    })),
 
   setScorecard: (s) => set({ scorecard: s }),
   setQuantileCurve: (q) => set({ quantileCurve: q }),
 
   selectStation: (id) =>
-    set((state) => ({
-      selectedStationId: id,
-      selectedStation:
-        state.forecast?.stations.find((s) => s.id === id) ?? null,
-    })),
+    set((state) => {
+      const found = state.forecast?.stations.find((s) => s.id === id);
+      if (found) {
+        return {
+          selectedStationId: id,
+          selectedStation: found,
+        };
+      }
+      return {}; // Keep previous station if not found
+    }),
 
   setLayerMode: (m) => set({ layerMode: m }),
   setLeadDay: (d) => set({ leadDay: d }),

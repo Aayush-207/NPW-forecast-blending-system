@@ -1,237 +1,63 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useWeatherStore } from "./store/useWeatherStore";
 import Layout from "./components/layout/Layout";
-import type { WeatherStation } from "./types/weather";
-
-const MOCK_STATIONS: WeatherStation[] = [
-  {
-    id: "pune-shiva",
-    name: "Shivajinagar",
-    lat: 18.5308,
-    lng: 73.8475,
-    elevation_m: 560,
-    terrain_type: "Urban Basin",
-    coverage_radius_km: 10,
-    observed_rain_24h: 45.2,
-    observed_temp_c: 27.6,
-    observed_humidity: 63,
-    observed_wind_kmh: 14,
-    observed_pressure: 1011,
-    model_predictions: { gfs: 42, ncum: 38, wrf: 58, ecmwf: 48, graphcast: 50, aifs: 46 },
-    model_temp: { gfs: 28, ncum: 29, wrf: 27, ecmwf: 28, graphcast: 27, aifs: 28 },
-    model_humidity: { gfs: 65, ncum: 60, wrf: 68, ecmwf: 65, graphcast: 66, aifs: 64 },
-    model_wind: { gfs: 12, ncum: 15, wrf: 10, ecmwf: 11, graphcast: 13, aifs: 12 },
-    assigned_weights: { ecmwf: 0.32, graphcast: 0.28, wrf: 0.18, aifs: 0.12, gfs: 0.06, ncum: 0.04 },
-    recent_mae_48h: { gfs: 14.2, ncum: 16.8, wrf: 9.5, ecmwf: 6.1, graphcast: 6.8, aifs: 8.2 },
-    consensus_blend: 48.8,
-    consensus_temp: 28,
-    consensus_humidity: 65,
-    consensus_wind: 12,
-    disagreement_index: 20,
-    simple_average: 46.0,
-    worst_case_90th: 65.4,
-    p_heavy_rain: 0.15,
-    p_very_heavy: 0.02,
-    p_extremely_heavy: 0.0,
-    active_alert: null,
-    dominant_model: "ECMWF IFS HRES",
-    dominant_family: "Physics",
-    shap_explanation: "ECMWF dominates due to low 48h MAE. Strong orographic signal.",
-  },
-  {
-    id: "pune-pashan",
-    name: "Pashan",
-    lat: 18.5353,
-    lng: 73.7828,
-    elevation_m: 580,
-    terrain_type: "Suburban Hill",
-    coverage_radius_km: 8,
-    observed_rain_24h: 52.5,
-    observed_temp_c: 26.5,
-    observed_humidity: 68,
-    observed_wind_kmh: 16,
-    observed_pressure: 1009,
-    model_predictions: { gfs: 48, ncum: 44, wrf: 75, ecmwf: 60, graphcast: 58, aifs: 55 },
-    model_temp: { gfs: 27, ncum: 28, wrf: 26, ecmwf: 27, graphcast: 26, aifs: 27 },
-    model_humidity: { gfs: 70, ncum: 65, wrf: 72, ecmwf: 68, graphcast: 70, aifs: 69 },
-    model_wind: { gfs: 14, ncum: 18, wrf: 12, ecmwf: 15, graphcast: 16, aifs: 14 },
-    assigned_weights: { ecmwf: 0.30, graphcast: 0.25, wrf: 0.25, aifs: 0.10, gfs: 0.05, ncum: 0.05 },
-    recent_mae_48h: { gfs: 15.5, ncum: 17.2, wrf: 8.5, ecmwf: 6.8, graphcast: 7.5, aifs: 9.0 },
-    consensus_blend: 60.5,
-    consensus_temp: 27,
-    consensus_humidity: 69,
-    consensus_wind: 15,
-    disagreement_index: 31,
-    simple_average: 56.6,
-    worst_case_90th: 85.0,
-    p_heavy_rain: 0.45,
-    p_very_heavy: 0.08,
-    p_extremely_heavy: 0.0,
-    active_alert: null,
-    dominant_model: "ECMWF IFS HRES",
-    dominant_family: "Physics",
-    shap_explanation: "ECMWF & WRF agree on moderate heavy rain. Suburban hill uplift.",
-  },
-  {
-    id: "pune-lohegaon",
-    name: "Lohegaon",
-    lat: 18.5960,
-    lng: 73.9247,
-    elevation_m: 592,
-    terrain_type: "Airport/Plains",
-    coverage_radius_km: 12,
-    observed_rain_24h: 38.0,
-    observed_temp_c: 28.2,
-    observed_humidity: 60,
-    observed_wind_kmh: 18,
-    observed_pressure: 1012,
-    model_predictions: { gfs: 35, ncum: 32, wrf: 45, ecmwf: 40, graphcast: 38, aifs: 39 },
-    model_temp: { gfs: 29, ncum: 30, wrf: 28, ecmwf: 29, graphcast: 28, aifs: 29 },
-    model_humidity: { gfs: 62, ncum: 58, wrf: 65, ecmwf: 60, graphcast: 62, aifs: 61 },
-    model_wind: { gfs: 16, ncum: 20, wrf: 14, ecmwf: 18, graphcast: 19, aifs: 17 },
-    assigned_weights: { ecmwf: 0.35, graphcast: 0.30, wrf: 0.10, aifs: 0.15, gfs: 0.05, ncum: 0.05 },
-    recent_mae_48h: { gfs: 12.0, ncum: 14.5, wrf: 11.2, ecmwf: 5.5, graphcast: 6.0, aifs: 7.8 },
-    consensus_blend: 39.5,
-    consensus_temp: 29,
-    consensus_humidity: 61,
-    consensus_wind: 18,
-    disagreement_index: 13,
-    simple_average: 38.1,
-    worst_case_90th: 52.0,
-    p_heavy_rain: 0.05,
-    p_very_heavy: 0.0,
-    p_extremely_heavy: 0.0,
-    active_alert: null,
-    dominant_model: "ECMWF IFS HRES",
-    dominant_family: "Physics",
-    shap_explanation: "Low model spread. Flat terrain reduces orographic enhancement.",
-  },
-  {
-    id: "pune-lavale",
-    name: "Lavale",
-    lat: 18.5235,
-    lng: 73.7184,
-    elevation_m: 630,
-    terrain_type: "Hilly Fringe",
-    coverage_radius_km: 15,
-    observed_rain_24h: 85.0,
-    observed_temp_c: 24.5,
-    observed_humidity: 80,
-    observed_wind_kmh: 22,
-    observed_pressure: 1005,
-    model_predictions: { gfs: 70, ncum: 65, wrf: 120, ecmwf: 95, graphcast: 88, aifs: 90 },
-    model_temp: { gfs: 25, ncum: 26, wrf: 24, ecmwf: 25, graphcast: 24, aifs: 25 },
-    model_humidity: { gfs: 82, ncum: 78, wrf: 85, ecmwf: 80, graphcast: 82, aifs: 81 },
-    model_wind: { gfs: 20, ncum: 25, wrf: 18, ecmwf: 22, graphcast: 23, aifs: 21 },
-    assigned_weights: { ecmwf: 0.25, graphcast: 0.20, wrf: 0.35, aifs: 0.10, gfs: 0.05, ncum: 0.05 },
-    recent_mae_48h: { gfs: 25.0, ncum: 28.5, wrf: 12.5, ecmwf: 15.5, graphcast: 16.0, aifs: 18.2 },
-    consensus_blend: 98.5,
-    consensus_temp: 25,
-    consensus_humidity: 81,
-    consensus_wind: 22,
-    disagreement_index: 55,
-    simple_average: 88.0,
-    worst_case_90th: 135.0,
-    p_heavy_rain: 0.85,
-    p_very_heavy: 0.35,
-    p_extremely_heavy: 0.05,
-    active_alert: "Heavy rainfall likely over hilly terrain. Risk of minor landslides.",
-    dominant_model: "WRF (3km)",
-    dominant_family: "Physics",
-    shap_explanation: "WRF captures fine-scale orographic uplift. High disagreementâ€”treat with caution.",
-  },
-  {
-    id: "pune-magarpatta",
-    name: "Magarpatta City",
-    lat: 18.5140,
-    lng: 73.9250,
-    elevation_m: 575,
-    terrain_type: "Urban Heat Island",
-    coverage_radius_km: 6,
-    observed_rain_24h: 35.5,
-    observed_temp_c: 29.0,
-    observed_humidity: 58,
-    observed_wind_kmh: 12,
-    observed_pressure: 1010,
-    model_predictions: { gfs: 30, ncum: 28, wrf: 40, ecmwf: 38, graphcast: 36, aifs: 35 },
-    model_temp: { gfs: 30, ncum: 31, wrf: 29, ecmwf: 30, graphcast: 29, aifs: 30 },
-    model_humidity: { gfs: 60, ncum: 55, wrf: 62, ecmwf: 58, graphcast: 60, aifs: 59 },
-    model_wind: { gfs: 10, ncum: 14, wrf: 8, ecmwf: 12, graphcast: 13, aifs: 11 },
-    assigned_weights: { ecmwf: 0.35, graphcast: 0.30, wrf: 0.15, aifs: 0.10, gfs: 0.05, ncum: 0.05 },
-    recent_mae_48h: { gfs: 11.5, ncum: 13.0, wrf: 9.8, ecmwf: 5.2, graphcast: 5.8, aifs: 7.0 },
-    consensus_blend: 36.8,
-    consensus_temp: 30,
-    consensus_humidity: 59,
-    consensus_wind: 12,
-    disagreement_index: 12,
-    simple_average: 34.5,
-    worst_case_90th: 48.0,
-    p_heavy_rain: 0.02,
-    p_very_heavy: 0.0,
-    p_extremely_heavy: 0.0,
-    active_alert: null,
-    dominant_model: "ECMWF IFS HRES",
-    dominant_family: "AI",
-    shap_explanation: "GraphCast & AIFS agree well. Urban heat island suppresses convection.",
-  },
-  {
-    id: "pune-chinchwad",
-    name: "Chinchwad",
-    lat: 18.6100,
-    lng: 73.8800,
-    elevation_m: 570,
-    terrain_type: "Industrial/Urban",
-    coverage_radius_km: 10,
-    observed_rain_24h: 42.0,
-    observed_temp_c: 28.5,
-    observed_humidity: 62,
-    observed_wind_kmh: 15,
-    observed_pressure: 1010,
-    model_predictions: { gfs: 38, ncum: 35, wrf: 50, ecmwf: 45, graphcast: 42, aifs: 44 },
-    model_temp: { gfs: 29, ncum: 30, wrf: 28, ecmwf: 29, graphcast: 28, aifs: 29 },
-    model_humidity: { gfs: 64, ncum: 60, wrf: 66, ecmwf: 62, graphcast: 64, aifs: 63 },
-    model_wind: { gfs: 13, ncum: 17, wrf: 11, ecmwf: 15, graphcast: 16, aifs: 14 },
-    assigned_weights: { ecmwf: 0.32, graphcast: 0.28, wrf: 0.20, aifs: 0.12, gfs: 0.05, ncum: 0.03 },
-    recent_mae_48h: { gfs: 13.0, ncum: 15.5, wrf: 8.8, ecmwf: 5.9, graphcast: 6.5, aifs: 7.5 },
-    consensus_blend: 44.2,
-    consensus_temp: 29,
-    consensus_humidity: 63,
-    consensus_wind: 15,
-    disagreement_index: 15,
-    simple_average: 42.3,
-    worst_case_90th: 58.5,
-    p_heavy_rain: 0.10,
-    p_very_heavy: 0.01,
-    p_extremely_heavy: 0.0,
-    active_alert: null,
-    dominant_model: "ECMWF IFS HRES",
-    dominant_family: "Ensemble",
-    shap_explanation: "Balanced ensemble. Industrial aerosols slightly reduce convective available potential.",
-  }
-];
 
 export default function App() {
-  const { setForecast, selectStation } = useWeatherStore();
+  const { setForecast, selectStation, selectedStationId } = useWeatherStore();
+  const leadDay = useWeatherStore(s => s.leadDay);
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["forecast", "pune", leadDay],
+    queryFn: async () => {
+      const res = await fetch(`http://localhost:8000/api/v1/regions/pune/forecast?lead_day=${leadDay}`);
+      if (!res.ok) throw new Error("Failed to fetch forecast");
+      return res.json();
+    }
+  });
+
+  const { data: scorecardData } = useQuery({
+    queryKey: ["scorecard"],
+    queryFn: async () => {
+      const res = await fetch(`http://localhost:8000/api/v1/scorecard`);
+      if (!res.ok) throw new Error("Failed to fetch scorecard");
+      return res.json();
+    }
+  });
 
   useEffect(() => {
-    // Populate store with mock stations
-    setForecast({
-      region_id: "pune-test",
-      region_name: "Pune Metropolitan & Western Ghats",
-      regime: "Active Orographic Monsoon",
-      regime_confidence: 0.94,
-      season: "Southwest Monsoon",
-      lead_day: 1,
-      stations: MOCK_STATIONS,
-      grid_summary: {
-        avg_consensus_blend: 54.5,
-        max_consensus_blend: 98.5,
-        stations_on_alert: 1,
-      },
-    });
-    selectStation(MOCK_STATIONS[0].id);
-  }, [setForecast, selectStation]);
+    if (data) {
+      setForecast(data);
+      if (!selectedStationId && data.stations.length > 0) {
+        selectStation(data.stations[0].id);
+      }
+    }
+    if (scorecardData) {
+      useWeatherStore.getState().setScorecard(scorecardData);
+    }
+  }, [data, scorecardData, setForecast, selectStation, selectedStationId]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-obsidian text-slate-400">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-monsoon-cyan border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm">Loading Forecast Data...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-obsidian text-crimson-hazard">
+        <div className="panel p-6 text-center space-y-2 border-crimson-hazard/30 bg-crimson-hazard/10">
+          <h2 className="font-bold text-lg">Failed to load forecast</h2>
+          <p className="text-sm text-slate-400">Ensure the backend API is running on localhost:8000</p>
+        </div>
+      </div>
+    );
+  }
 
   return <Layout />;
 }
-

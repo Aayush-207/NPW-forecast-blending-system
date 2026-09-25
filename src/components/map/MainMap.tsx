@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AtmosFusion — Dual Map Canvas
  * Map1: OpenStreetMap with CSS dark inversion (free, no key)
  * Map2: Google Maps with custom dark style (API key)
@@ -12,7 +12,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { GoogleMap, useLoadScript, MarkerF, InfoWindowF } from "@react-google-maps/api";
+import { GoogleMap, useLoadScript, MarkerF, InfoWindowF, CircleF } from "@react-google-maps/api";
 import { useWeatherStore } from "@/store/useWeatherStore";
 import type { WeatherStation, LayerMode } from "@/types/weather";
 import {
@@ -24,7 +24,7 @@ import {
 /*  Config                                                      */
 /* ─────────────────────────────────────────────────────────── */
 
-const GMAPS_KEY = "AIzaSyBwdsTEUvnpcnsJhjNP5FiHK5vArEUgypY";
+const GMAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 
 const DARK_GOOGLE_STYLES: google.maps.MapTypeStyle[] = [
   { elementType: "geometry",               stylers: [{ color: "#0d1117" }] },
@@ -100,7 +100,7 @@ function buildLeafletIcon(color: string, isSelected: boolean, hasAlert: boolean,
         </div>
         <div style="margin-top:2px;font-size:9px;font-weight:700;color:${color};text-shadow:0 1px 5px rgba(0,0,0,1);white-space:nowrap;background:rgba(9,9,11,0.75);padding:1px 5px;border-radius:4px;pointer-events:none;">${name}</div>
       </div>`,
-    iconAnchor: [(size+10)/2, (size+10)/2],
+    iconAnchor: [50, (size+10)/2],
     popupAnchor: [0, -(size+20)],
     iconSize: [100, 45],
   });
@@ -139,7 +139,7 @@ function StationCard({ station, color }: { station: WeatherStation; color: strin
   const deg = "\u00B0";
   const hasAlert = !!station.active_alert;
   return (
-    <div className="bg-[#0d0d10]/97 backdrop-blur-xl border border-slate-border rounded-xl shadow-2xl w-[300px] font-sans overflow-hidden" style={{ animation: "af-fadein 0.18s ease both" }}>
+    <div className="bg-[#0d0d10]/[.97] backdrop-blur-xl border border-slate-border rounded-xl shadow-2xl w-[300px] font-sans overflow-hidden" style={{ animation: "af-fadein 0.18s ease both" }}>
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2.5 border-b border-slate-border bg-frosted-slate/30">
         <div className="flex items-center gap-2">
@@ -336,7 +336,7 @@ function GoogleMapView() {
         return (
           <div key={station.id}>
             {showCoverage && (
-              <window.google.maps.Circle
+              <CircleF
                 center={{ lat: station.lat, lng: station.lng }}
                 radius={(station.coverage_radius_km||10)*1000}
                 options={{ strokeColor: color, strokeOpacity:0.6, strokeWeight: isSelected?2:1, fillColor: color, fillOpacity: isSelected?0.12:0.05, strokeDasharray:"6 5" }}
@@ -384,6 +384,7 @@ function GoogleMapView() {
 type MapType = "osm" | "google";
 
 function MapToggle({ mapType, onToggle }: { mapType: MapType; onToggle: (t: MapType) => void }) {
+  if (!GMAPS_KEY) return null;
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[1001] flex" style={{ animation: "af-fadein 0.7s ease both" }}>
       <div className="panel flex rounded-full overflow-hidden border border-slate-border shadow-2xl">

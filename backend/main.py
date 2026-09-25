@@ -27,7 +27,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -373,8 +373,8 @@ def health():
     )
 
 
-@app.get("/api/v1/forecast/pune", response_model=RegionForecast)
-def forecast_pune():
+@app.get("/api/v1/regions/{region_id}/forecast", response_model=RegionForecast)
+def forecast(region_id: str, lead_day: int = Query(1, ge=1, le=10)):
     return RegionForecast(
         region_id="pune-metro",
         region_name="Pune Metropolitan & Western Ghats",
@@ -409,4 +409,4 @@ def quantile_curve(station_id: str = Query(..., description="Station ID")):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
