@@ -1,8 +1,7 @@
-/**
- * AtmosFusion — Central Map Canvas
- * OpenStreetMap tiles (free, no API key), custom animated DivIcon markers
- * with station name labels, layer controls, coverage circle toggle,
- * and pulsing hazard rings for active alert stations.
+ï»¿/**
+ * AtmosFusion - Central Map Canvas
+ * CartoDB Dark Matter tiles (free, no API key), custom animated DivIcon markers,
+ * rich multi-parameter station tooltip with icons, coverage toggle.
  */
 
 import { useEffect, useState } from "react";
@@ -28,9 +27,19 @@ import {
   Shield,
   Eye,
   EyeOff,
+  Thermometer,
+  Wind,
+  Droplets,
+  Gauge,
+  CloudRain,
+  TrendingUp,
+  Cpu,
 } from "lucide-react";
 
-/* --- Rainfall -> Color mapping --- */
+/* ------------------------------------------------------------------ */
+/*  Color helpers                                                       */
+/* ------------------------------------------------------------------ */
+
 function rainColor(mm: number): string {
   if (mm >= 204.5) return "#f87171";
   if (mm >= 115.6) return "#FFB703";
@@ -40,7 +49,6 @@ function rainColor(mm: number): string {
   return "#3A86FF";
 }
 
-/* --- Layer-specific coloring --- */
 function getStationColor(station: WeatherStation, mode: LayerMode): string {
   switch (mode) {
     case "consensus":
@@ -69,7 +77,10 @@ function getStationColor(station: WeatherStation, mode: LayerMode): string {
   }
 }
 
-/* --- Build custom DivIcon with colored dot + label --- */
+/* ------------------------------------------------------------------ */
+/*  Custom DivIcon â€” colored dot + station name label                  */
+/* ------------------------------------------------------------------ */
+
 function buildStationIcon(
   color: string,
   isSelected: boolean,
@@ -77,71 +88,83 @@ function buildStationIcon(
   stationName: string
 ): L.DivIcon {
   const size = isSelected ? 18 : 13;
+
   const pulseHtml = hasAlert
-    ? `<span class="af-pulse-ring" style="--ring-color:${color};width:${size + 16}px;height:${size + 16}px;margin-left:-${(size + 16 - size) / 2}px;margin-top:-${(size + 16 - size) / 2}px;"></span>`
+    ? `<span style="
+        position:absolute;top:50%;left:50%;
+        transform:translate(-50%,-50%);
+        width:${size + 20}px;height:${size + 20}px;
+        border-radius:50%;
+        border:2px solid ${color};
+        animation:af-pulse-ring 1.8s ease-out infinite;
+        pointer-events:none;
+      "></span>`
     : "";
-  const selectRing = isSelected
-    ? `<span style="position:absolute;inset:-4px;border-radius:50%;border:2px solid ${color};opacity:0.7;animation:af-spin 3s linear infinite;"></span>`
+
+  const spinRing = isSelected
+    ? `<span style="
+        position:absolute;inset:-5px;border-radius:50%;
+        border:2px dashed ${color};opacity:0.7;
+        animation:af-spin 3s linear infinite;
+        pointer-events:none;
+      "></span>`
     : "";
 
   return L.divIcon({
     className: "",
     html: `
       <div style="position:relative;display:flex;flex-direction:column;align-items:center;cursor:pointer;">
-        <div style="position:relative;display:flex;align-items:center;justify-content:center;">
+        <div style="position:relative;display:flex;align-items:center;justify-content:center;width:${size + 10}px;height:${size + 10}px;">
           ${pulseHtml}
-          ${selectRing}
+          ${spinRing}
           <div style="
-            width:${size}px;
-            height:${size}px;
+            width:${size}px;height:${size}px;
             border-radius:50%;
             background:${color};
-            border:2px solid rgba(255,255,255,0.35);
-            box-shadow:0 0 ${isSelected ? 18 : 10}px ${color}BB,0 2px 8px rgba(0,0,0,0.5);
-            position:relative;
-            z-index:2;
+            border:2px solid rgba(255,255,255,0.4);
+            box-shadow:0 0 ${isSelected ? 20 : 10}px ${color}CC, 0 2px 8px rgba(0,0,0,0.6);
+            position:relative;z-index:2;
             transition:all 0.3s ease;
           "></div>
         </div>
         <div style="
-          margin-top:3px;
-          font-size:9px;
-          font-weight:700;
+          margin-top:2px;
+          font-size:9px;font-weight:700;
           color:${color};
-          text-shadow:0 1px 4px rgba(0,0,0,0.9),0 0 8px rgba(0,0,0,0.8);
+          text-shadow:0 1px 5px rgba(0,0,0,1),0 0 10px rgba(0,0,0,0.9);
           white-space:nowrap;
           letter-spacing:0.04em;
-          line-height:1;
+          background:rgba(9,9,11,0.75);
+          padding:1px 5px;border-radius:4px;
           pointer-events:none;
-          background:rgba(9,9,11,0.6);
-          padding:1px 4px;
-          border-radius:3px;
         ">${stationName}</div>
       </div>`,
-    iconAnchor: [size / 2, size / 2],
-    popupAnchor: [0, -(size + 18)],
-    iconSize: [80, 40],
+    iconAnchor: [(size + 10) / 2, (size + 10) / 2],
+    popupAnchor: [0, -(size + 20)],
+    iconSize: [100, 45],
   });
 }
 
-/* --- Map auto-fit helper --- */
+/* ------------------------------------------------------------------ */
+/*  Auto-fit map to station bounds                                     */
+/* ------------------------------------------------------------------ */
+
 function FitBounds() {
   const map = useMap();
   const forecast = useWeatherStore((s) => s.forecast);
-
   useEffect(() => {
     if (forecast && forecast.stations.length > 0) {
-      const bounds = forecast.stations.map(
-        (s) => [s.lat, s.lng] as [number, number]
-      );
+      const bounds = forecast.stations.map((s) => [s.lat, s.lng] as [number, number]);
       map.fitBounds(bounds, { padding: [80, 80], maxZoom: 12 });
     }
   }, [forecast, map]);
-
   return null;
 }
 
-/* --- Layer control buttons --- */
+/* ------------------------------------------------------------------ */
+/*  Layer control panel                                                */
+/* ------------------------------------------------------------------ */
+
 const LAYERS: { id: LayerMode; label: string; icon: React.ReactNode }[] = [
   { id: "consensus",    label: "Consensus",    icon: <Target className="w-3.5 h-3.5" /> },
   { id: "trust",        label: "Trust Map",    icon: <Shield className="w-3.5 h-3.5" /> },
@@ -154,16 +177,12 @@ function LayerControls({ showCoverage, onToggleCoverage }: {
   onToggleCoverage: () => void;
 }) {
   const { layerMode, setLayerMode } = useWeatherStore();
-
   return (
-    <div
-      className="absolute top-3 right-3 z-[1000] flex flex-col gap-1.5"
-      style={{ animation: "af-fadein 0.6s ease both" }}
-    >
+    <div className="absolute top-3 right-3 z-[1000] flex flex-col gap-1.5"
+      style={{ animation: "af-fadein 0.6s ease both" }}>
       <div className="panel p-1">
         <div className="px-2 py-1 text-[9px] uppercase tracking-widest text-slate-500 font-semibold flex items-center gap-1.5">
-          <Layers className="w-3 h-3" />
-          Layers
+          <Layers className="w-3 h-3" /> Layers
         </div>
         {LAYERS.map((l) => (
           <button
@@ -175,13 +194,10 @@ function LayerControls({ showCoverage, onToggleCoverage }: {
                 : "text-slate-400 hover:bg-frosted-slate hover:text-slate-100"
             }`}
           >
-            {l.icon}
-            {l.label}
+            {l.icon}{l.label}
           </button>
         ))}
       </div>
-
-      {/* Coverage toggle */}
       <button
         onClick={onToggleCoverage}
         className={`flex items-center gap-2 px-2.5 py-1.5 text-[11px] rounded-xl border transition-all duration-300 panel ${
@@ -197,66 +213,166 @@ function LayerControls({ showCoverage, onToggleCoverage }: {
   );
 }
 
-/* --- Station Tooltip Card --- */
-function StationTooltipCard({ station, color }: { station: WeatherStation; color: string }) {
-  const hasAlert = !!station.active_alert;
+/* ------------------------------------------------------------------ */
+/*  Station hover tooltip â€” all weather parameters + icons            */
+/* ------------------------------------------------------------------ */
+
+function MetricRow({
+  icon,
+  label,
+  observed,
+  consensus,
+  unit,
+  consensusColor = "text-monsoon-cyan",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  observed: number | string;
+  consensus?: number | string;
+  unit: string;
+  consensusColor?: string;
+}) {
   return (
-    <div
-      className="bg-obsidian/95 backdrop-blur-md border border-slate-border p-3 rounded-xl shadow-2xl w-[270px] font-sans text-slate-100"
-      style={{ animation: "af-fadein 0.2s ease both" }}
-    >
-      <div className="flex items-center justify-between border-b border-slate-border pb-2 mb-2">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-2.5 h-2.5 rounded-full"
-            style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}` }}
-          />
-          <span className="font-bold text-sm tracking-tight">{station.name}</span>
-        </div>
-        {hasAlert && (
-          <span className="bg-crimson-hazard/10 text-crimson-hazard px-1.5 py-0.5 rounded text-[9px] font-bold uppercase animate-pulse">
-            Alert
+    <div className="flex items-center gap-2 py-1 border-b border-slate-border/40 last:border-0">
+      <div className="text-slate-500 flex-shrink-0">{icon}</div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold">{label}</div>
+        <div className="flex items-center gap-2 mt-0.5">
+          <span className="font-mono text-[11px] text-slate-300">
+            {observed}{unit}
           </span>
-        )}
-      </div>
-
-      <div className="flex justify-between items-center bg-frosted-slate/50 p-2 rounded-lg mb-3 border border-slate-border">
-        <div className="text-center w-1/2 border-r border-slate-border">
-          <div className="text-[9px] text-slate-500 uppercase font-semibold mb-0.5">Observed Temp</div>
-          <div className="font-mono text-xs font-bold">{station.observed_temp_c}°C</div>
-        </div>
-        <div className="text-center w-1/2">
-          <div className="text-[9px] text-monsoon-cyan uppercase font-bold mb-0.5">Consensus</div>
-          <div className="font-mono text-monsoon-cyan font-bold text-xs">{station.consensus_temp}°C</div>
-        </div>
-      </div>
-
-      <div className="text-[9px] text-slate-500 uppercase font-bold tracking-widest mb-1.5">
-        Model Rain (mm)
-      </div>
-      <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-        {Object.entries(station.model_predictions).map(([k, v]) => (
-          <div key={k} className="flex justify-between items-center">
-            <span className="text-slate-500 text-[10px] uppercase">{k}</span>
-            <span className="font-mono text-[11px] font-semibold">{v}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-3 pt-2 border-t border-slate-border flex items-center gap-2">
-        <div className="w-1.5 h-1.5 rounded-full bg-quantum-violet animate-pulse" />
-        <div className="text-[9px] text-slate-500">
-          Dominant: <span className="text-slate-100 font-bold">{station.dominant_model}</span>
+          {consensus !== undefined && (
+            <>
+              <span className="text-slate-600 text-[9px]">obs</span>
+              <span className="text-slate-600 text-[9px]">&#8594;</span>
+              <span className={`font-mono text-[11px] font-bold ${consensusColor}`}>
+                {consensus}{unit}
+              </span>
+              <span className="text-slate-600 text-[9px]">model</span>
+            </>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-/* --- Main Map Component --- */
+function StationTooltipCard({ station, color }: { station: WeatherStation; color: string }) {
+  const hasAlert = !!station.active_alert;
+  const deg = "\u00B0";
+
+  return (
+    <div
+      className="bg-[#0d0d10]/97 backdrop-blur-xl border border-slate-border rounded-xl shadow-2xl w-[310px] font-sans overflow-hidden"
+      style={{ animation: "af-fadein 0.18s ease both" }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-3 py-2.5 border-b border-slate-border bg-frosted-slate/30">
+        <div className="flex items-center gap-2">
+          <div
+            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+            style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }}
+          />
+          <span className="font-bold text-[13px] text-slate-100 tracking-tight">{station.name}</span>
+          <span className="text-[9px] text-slate-500 font-mono">{station.elevation_m}m</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {hasAlert && (
+            <span className="bg-crimson-hazard/15 text-crimson-hazard px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase animate-pulse border border-crimson-hazard/30">
+              &#9888; Alert
+            </span>
+          )}
+          <span className="text-[9px] text-slate-600 bg-frosted-slate px-1.5 py-0.5 rounded">
+            {station.terrain_type}
+          </span>
+        </div>
+      </div>
+
+      {/* Parameters */}
+      <div className="px-3 py-2 space-y-0">
+        <MetricRow
+          icon={<Thermometer className="w-3.5 h-3.5" />}
+          label="Temperature"
+          observed={`${station.observed_temp_c}${deg}C`}
+          consensus={`${station.consensus_temp}${deg}C`}
+          unit=""
+          consensusColor="text-crimson-hazard"
+        />
+        <MetricRow
+          icon={<Droplets className="w-3.5 h-3.5" />}
+          label="Humidity"
+          observed={`${station.observed_humidity}%`}
+          consensus={`${station.consensus_humidity}%`}
+          unit=""
+          consensusColor="text-monsoon-cyan"
+        />
+        <MetricRow
+          icon={<Wind className="w-3.5 h-3.5" />}
+          label="Wind Speed"
+          observed={`${station.observed_wind_kmh}`}
+          consensus={`${station.consensus_wind}`}
+          unit=" km/h"
+          consensusColor="text-neural-emerald"
+        />
+        <MetricRow
+          icon={<Gauge className="w-3.5 h-3.5" />}
+          label="Pressure"
+          observed={`${station.observed_pressure} hPa`}
+          unit=""
+        />
+        <MetricRow
+          icon={<CloudRain className="w-3.5 h-3.5" />}
+          label="Precipitation (24h blend)"
+          observed={`${station.observed_rain_24h}`}
+          consensus={`${station.consensus_blend}`}
+          unit=" mm"
+          consensusColor="text-atlantic-blue"
+        />
+        <MetricRow
+          icon={<TrendingUp className="w-3.5 h-3.5 text-amber-alert" />}
+          label="90th Percentile Risk"
+          observed={`${station.worst_case_90th} mm`}
+          unit=""
+        />
+      </div>
+
+      {/* Model Rain Predictions mini grid */}
+      <div className="px-3 pb-2">
+        <div className="text-[9px] uppercase tracking-widest text-slate-500 font-bold mb-1.5 flex items-center gap-1">
+          <Cpu className="w-3 h-3" /> Model Predictions (mm)
+        </div>
+        <div className="grid grid-cols-3 gap-1">
+          {Object.entries(station.model_predictions).map(([k, v]) => (
+            <div key={k} className="bg-frosted-slate/40 rounded-md px-1.5 py-1 border border-slate-border/50">
+              <div className="text-[8px] text-slate-500 uppercase font-bold truncate">{k}</div>
+              <div className="font-mono text-[11px] text-slate-200 font-semibold">{v}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="px-3 py-2 border-t border-slate-border bg-frosted-slate/20 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-quantum-violet animate-pulse" />
+          <span className="text-[9px] text-slate-500">
+            Dominant: <span className="text-slate-200 font-semibold">{station.dominant_model}</span>
+          </span>
+        </div>
+        <span className="text-[9px] text-slate-600 font-mono">
+          {station.lat.toFixed(3)}{"\u00B0"}N {station.lng.toFixed(3)}{"\u00B0"}E
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main Map Component                                                 */
+/* ------------------------------------------------------------------ */
+
 export default function MainMap() {
-  const { forecast, selectStation, selectedStationId, layerMode } =
-    useWeatherStore();
+  const { forecast, selectStation, selectedStationId, layerMode } = useWeatherStore();
   const stations = forecast?.stations ?? [];
   const [showCoverage, setShowCoverage] = useState(false);
 
@@ -269,11 +385,11 @@ export default function MainMap() {
         zoomControl={false}
         attributionControl={false}
       >
-        {/* Free OpenStreetMap tiles — no API key required */}
+        {/* CartoDB Dark Matter â€” free, no API key, genuinely dark */}
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          subdomains={["a", "b", "c"]}
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          subdomains="abcd"
           maxZoom={19}
         />
 
@@ -287,7 +403,6 @@ export default function MainMap() {
 
           return (
             <LayerGroup key={station.id}>
-              {/* Coverage Area — shown only when toggled */}
               {showCoverage && (
                 <Circle
                   center={[station.lat, station.lng]}
@@ -302,11 +417,10 @@ export default function MainMap() {
                 />
               )}
 
-              {/* Outer pulsing ring for alert stations */}
               {hasAlert && (
                 <CircleMarker
                   center={[station.lat, station.lng]}
-                  radius={24}
+                  radius={26}
                   pathOptions={{
                     color: "#f87171",
                     fillColor: "transparent",
@@ -318,7 +432,6 @@ export default function MainMap() {
                 />
               )}
 
-              {/* Custom Marker with name label */}
               <Marker
                 position={[station.lat, station.lng]}
                 icon={icon}
@@ -326,7 +439,7 @@ export default function MainMap() {
               >
                 <Tooltip
                   direction="top"
-                  offset={[0, -20]}
+                  offset={[0, -22]}
                   opacity={1}
                   className="!bg-transparent !border-0 !shadow-none !p-0"
                 >
@@ -343,8 +456,7 @@ export default function MainMap() {
         onToggleCoverage={() => setShowCoverage((v) => !v)}
       />
 
-      {/* Map gradient overlays for depth */}
-      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-obsidian/40 to-transparent pointer-events-none z-[400]" />
+      <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-obsidian/50 to-transparent pointer-events-none z-[400]" />
       <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-obsidian/30 to-transparent pointer-events-none z-[400]" />
     </div>
   );
