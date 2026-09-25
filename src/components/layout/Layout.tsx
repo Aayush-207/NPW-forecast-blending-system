@@ -7,12 +7,12 @@ export default function Layout() {
   return (
     <>
       <Header />
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden" style={{ animation: 'af-fadein 0.5s ease 0.1s both' }}>
         {/* Left Drawer */}
         <WeightEngineDrawer />
 
         {/* Center Map */}
-        <main className="flex-1 relative bg-obsidian">
+        <main className="flex-1 relative bg-obsidian h-full">
           <MainMap />
         </main>
 

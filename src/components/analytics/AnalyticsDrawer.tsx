@@ -70,7 +70,7 @@ export default function AnalyticsDrawer() {
   }));
 
   return (
-    <div className="w-[380px] flex-shrink-0 bg-obsidian border-l border-slate-border flex flex-col overflow-hidden">
+    <div className="w-[380px] flex-shrink-0 bg-obsidian border-l border-slate-border flex flex-col overflow-hidden drawer-right">
       {/* ─── Panel Header ─── */}
       <div className="panel-header flex-shrink-0 bg-midnight-slate/50">
         <Layers className="w-4 h-4 text-monsoon-cyan" />
@@ -79,8 +79,8 @@ export default function AnalyticsDrawer() {
 
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
         
-        {/* ── 3D Profile Diagram ── */}
-        <div className="panel p-3 bg-midnight-slate/50">
+        {/* -- 3D Profile Diagram -- */}
+        <div className="panel p-3 bg-midnight-slate/50" style={{ animation: 'af-fadein 0.5s ease 0.1s both' }}>
           <div className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-2 flex items-center gap-1.5">
             <Activity className="w-3 h-3 text-atlantic-blue" />
             Atmospheric Vector Profile
@@ -105,9 +105,9 @@ export default function AnalyticsDrawer() {
           </div>
         </div>
 
-        {/* ── Weather Metrics Grid ── */}
+        {/* -- Weather Metrics Grid -- */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="panel p-3 bg-midnight-slate/50 flex flex-col gap-1">
+          <div className="panel p-3 bg-midnight-slate/50 flex flex-col gap-1" style={{ animation: 'af-fadein 0.5s ease 0.2s both' }}>
             <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
               <Thermometer className="w-3.5 h-3.5 text-crimson-hazard" />
               Temperature
@@ -120,7 +120,7 @@ export default function AnalyticsDrawer() {
             </div>
           </div>
 
-          <div className="panel p-3 bg-midnight-slate/50 flex flex-col gap-1">
+          <div className="panel p-3 bg-midnight-slate/50 flex flex-col gap-1" style={{ animation: 'af-fadein 0.5s ease 0.3s both' }}>
             <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
               <Wind className="w-3.5 h-3.5 text-monsoon-cyan" />
               Wind Speed
@@ -133,7 +133,7 @@ export default function AnalyticsDrawer() {
             </div>
           </div>
 
-          <div className="panel p-3 bg-midnight-slate/50 flex flex-col gap-1">
+          <div className="panel p-3 bg-midnight-slate/50 flex flex-col gap-1" style={{ animation: 'af-fadein 0.5s ease 0.35s both' }}>
             <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
               <CloudRain className="w-3.5 h-3.5 text-atlantic-blue" />
               Precipitation
@@ -146,7 +146,7 @@ export default function AnalyticsDrawer() {
             </div>
           </div>
 
-          <div className="panel p-3 bg-midnight-slate/50 flex flex-col gap-1">
+          <div className="panel p-3 bg-midnight-slate/50 flex flex-col gap-1" style={{ animation: 'af-fadein 0.5s ease 0.4s both' }}>
             <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
               <Gauge className="w-3.5 h-3.5 text-amber-alert" />
               Pressure / Hum
@@ -160,8 +160,8 @@ export default function AnalyticsDrawer() {
           </div>
         </div>
 
-        {/* ── Temperature Distribution Chart ── */}
-        <div className="panel p-3 bg-midnight-slate/50">
+        {/* -- Temperature Distribution Chart -- */}
+        <div className="panel p-3 bg-midnight-slate/50" style={{ animation: 'af-fadein 0.5s ease 0.5s both' }}>
           <div className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-3 flex items-center gap-1.5">
             <Thermometer className="w-3 h-3 text-crimson-hazard" />
             Model Temperature Spread

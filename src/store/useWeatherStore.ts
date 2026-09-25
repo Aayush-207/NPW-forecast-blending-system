@@ -44,7 +44,7 @@ export const useWeatherStore = create<WeatherState>((set, get) => ({
   scorecard: [],
   quantileCurve: [],
 
-  selectedStationId: "pune-lavasa",
+  selectedStationId: "pune-shiva",
   layerMode: "consensus",
   leadDay: 1,
   scenarioPreset: "pune-monsoon",

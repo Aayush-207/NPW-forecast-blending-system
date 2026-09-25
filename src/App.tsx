@@ -35,6 +35,8 @@ const MOCK_STATIONS: WeatherStation[] = [
     p_extremely_heavy: 0.0,
     active_alert: null,
     dominant_model: "ECMWF IFS HRES",
+    dominant_family: "Physics",
+    shap_explanation: "ECMWF dominates due to low 48h MAE. Strong orographic signal.",
   },
   {
     id: "pune-pashan",
@@ -67,6 +69,8 @@ const MOCK_STATIONS: WeatherStation[] = [
     p_extremely_heavy: 0.0,
     active_alert: null,
     dominant_model: "ECMWF IFS HRES",
+    dominant_family: "Physics",
+    shap_explanation: "ECMWF & WRF agree on moderate heavy rain. Suburban hill uplift.",
   },
   {
     id: "pune-lohegaon",
@@ -99,6 +103,8 @@ const MOCK_STATIONS: WeatherStation[] = [
     p_extremely_heavy: 0.0,
     active_alert: null,
     dominant_model: "ECMWF IFS HRES",
+    dominant_family: "Physics",
+    shap_explanation: "Low model spread. Flat terrain reduces orographic enhancement.",
   },
   {
     id: "pune-lavale",
@@ -131,6 +137,8 @@ const MOCK_STATIONS: WeatherStation[] = [
     p_extremely_heavy: 0.05,
     active_alert: "Heavy rainfall likely over hilly terrain. Risk of minor landslides.",
     dominant_model: "WRF (3km)",
+    dominant_family: "Physics",
+    shap_explanation: "WRF captures fine-scale orographic uplift. High disagreement—treat with caution.",
   },
   {
     id: "pune-magarpatta",
@@ -163,6 +171,8 @@ const MOCK_STATIONS: WeatherStation[] = [
     p_extremely_heavy: 0.0,
     active_alert: null,
     dominant_model: "ECMWF IFS HRES",
+    dominant_family: "AI",
+    shap_explanation: "GraphCast & AIFS agree well. Urban heat island suppresses convection.",
   },
   {
     id: "pune-chinchwad",
@@ -195,6 +205,8 @@ const MOCK_STATIONS: WeatherStation[] = [
     p_extremely_heavy: 0.0,
     active_alert: null,
     dominant_model: "ECMWF IFS HRES",
+    dominant_family: "Ensemble",
+    shap_explanation: "Balanced ensemble. Industrial aerosols slightly reduce convective available potential.",
   }
 ];
 
@@ -204,10 +216,18 @@ export default function App() {
   useEffect(() => {
     // Populate store with mock stations
     setForecast({
-      id: "pune-test",
-      region: "Pune",
-      timestamp: Date.now(),
+      region_id: "pune-test",
+      region_name: "Pune Metropolitan & Western Ghats",
+      regime: "Active Orographic Monsoon",
+      regime_confidence: 0.94,
+      season: "Southwest Monsoon",
+      lead_day: 1,
       stations: MOCK_STATIONS,
+      grid_summary: {
+        avg_consensus_blend: 54.5,
+        max_consensus_blend: 98.5,
+        stations_on_alert: 1,
+      },
     });
     selectStation(MOCK_STATIONS[0].id);
   }, [setForecast, selectStation]);

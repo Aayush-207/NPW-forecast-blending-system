@@ -1,4 +1,4 @@
-@import "@fontsource/inter/400.css";
+﻿@import "@fontsource/inter/400.css";
 @import "@fontsource/inter/500.css";
 @import "@fontsource/inter/600.css";
 @import "@fontsource/inter/700.css";
@@ -9,6 +9,69 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ──────────────────────────────────────────────────────────
+   AtmosFusion Global Animations
+   ────────────────────────────────────────────────────────── */
+
+@keyframes af-fadein {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes af-slidein-left {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes af-slidein-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes af-slidein-down {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes af-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes af-pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.8; }
+  70%  { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(1);   opacity: 0; }
+}
+
+@keyframes af-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes af-glow-cyan {
+  0%   { box-shadow: 0 0 4px rgba(96,165,250,0.3); }
+  100% { box-shadow: 0 0 18px rgba(96,165,250,0.7); }
+}
+
+@keyframes af-bar-grow {
+  from { width: 0%; }
+}
+
+/* ──────────────────────────────────────────────────────────
+   Marker styles (rendered inside Leaflet DivIcon HTML)
+   ────────────────────────────────────────────────────────── */
+.af-pulse-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid var(--ring-color, #f87171);
+  animation: af-pulse-ring 1.8s ease-out infinite;
+  pointer-events: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
 
 /* ──────────────────────────────────────────────────────────
    AtmosFusion Global Reset & Base Layer
@@ -29,10 +92,16 @@
     @apply w-full h-screen overflow-hidden flex flex-col;
   }
 
-  /* Leaflet z-index containment */
   .leaflet-container {
     @apply bg-obsidian z-0;
     font-family: "Inter", system-ui, sans-serif;
+  }
+
+  .leaflet-tooltip {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
   }
 
   .leaflet-control-zoom a {
@@ -43,19 +112,10 @@
     @apply bg-obsidian text-monsoon-cyan;
   }
 
-  /* Scrollbar styling */
-  ::-webkit-scrollbar {
-    @apply w-1.5;
-  }
-  ::-webkit-scrollbar-track {
-    @apply bg-obsidian;
-  }
-  ::-webkit-scrollbar-thumb {
-    @apply bg-slate-border rounded-full;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-frosted-slate;
-  }
+  ::-webkit-scrollbar { @apply w-1.5; }
+  ::-webkit-scrollbar-track { @apply bg-obsidian; }
+  ::-webkit-scrollbar-thumb { @apply bg-slate-border rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-frosted-slate; }
 }
 
 /* ──────────────────────────────────────────────────────────
@@ -67,7 +127,7 @@
   }
 
   .panel-header {
-    @apply px-3 py-2 border-b border-slate-border flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-600;
+    @apply px-3 py-2 border-b border-slate-border flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500;
   }
 
   .metric-value {
@@ -100,14 +160,35 @@
 
   .pill-active {
     @apply bg-monsoon-cyan/15 text-monsoon-cyan border-monsoon-cyan/40;
+    transition: all 0.2s ease;
   }
 
   .pill-inactive {
-    @apply bg-midnight-slate text-slate-600 border-slate-border hover:border-slate-300 hover:text-slate-100;
+    @apply bg-midnight-slate text-slate-500 border-slate-border hover:border-slate-300 hover:text-slate-100;
+    transition: all 0.2s ease;
   }
 
-  /* Map controls glow removed for light theme */
   .radar-glow {
-    box-shadow: none;
+    animation: af-glow-cyan 2s ease-in-out infinite alternate;
+  }
+
+  .weight-bar-fill {
+    animation: af-bar-grow 0.8s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+
+  .drawer-left {
+    animation: af-slidein-left 0.5s cubic-bezier(0.16,1,0.3,1) both;
+  }
+
+  .drawer-right {
+    animation: af-slidein-right 0.5s cubic-bezier(0.16,1,0.3,1) both;
+  }
+
+  .header-anim {
+    animation: af-slidein-down 0.4s cubic-bezier(0.16,1,0.3,1) both;
+  }
+
+  .card-anim {
+    animation: af-fadein 0.5s ease both;
   }
 }

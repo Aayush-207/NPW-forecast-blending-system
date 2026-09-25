@@ -34,7 +34,7 @@ export default function Header() {
   } = useWeatherStore();
 
   return (
-    <header className="flex-shrink-0 h-12 bg-midnight-slate/90 backdrop-blur-md border-b border-slate-border flex items-center justify-between px-4 z-50">
+    <header className="flex-shrink-0 h-12 bg-midnight-slate/90 backdrop-blur-md border-b border-slate-border flex items-center justify-between px-4 z-50 header-anim">
       {/* ── Left: Branding ── */}
       <div className="flex items-center gap-3 min-w-0">
         <div className="relative w-8 h-8 flex items-center justify-center">
