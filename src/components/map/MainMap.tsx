@@ -5,20 +5,21 @@
  * Floating Map1/Map2 toggle pill, shared station markers & layer controls.
  */
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import {
-  MapContainer, TileLayer, Circle, CircleMarker,
+  MapContainer, TileLayer, CircleMarker, GeoJSON,
   Marker, Tooltip, useMap, LayerGroup,
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { GoogleMap, useLoadScript, MarkerF, InfoWindowF, CircleF } from "@react-google-maps/api";
+import { GoogleMap, useLoadScript, MarkerF, InfoWindowF, PolygonF } from "@react-google-maps/api";
 import { useWeatherStore } from "@/store/useWeatherStore";
 import type { WeatherStation, LayerMode } from "@/types/weather";
 import {
   Layers, Target, AlertTriangle, BarChart3,
-  Shield, Eye, EyeOff, Map as MapIcon,
+  Shield, Eye, Map as MapIcon,
 } from "lucide-react";
+import * as turf from "@turf/turf";
 
 /* ─────────────────────────────────────────────────────────── */
 /*  Config                                                      */
@@ -74,6 +75,7 @@ function getStationColor(station: WeatherStation, mode: LayerMode): string {
       return station.worst_case_90th >= 115.6 ? "#E63946"
            : station.worst_case_90th >= 64.5  ? "#FFB703"
            : "#06D6A0";
+    case "coverage": return "#8338EC"; // Use a distinct color for coverage Voronoi areas
     default: return "#3b82f6";
   }
 }
@@ -236,6 +238,42 @@ function LayerControls() {
 }
 
 /* ─────────────────────────────────────────────────────────── */
+/*  Voronoi Generator Hook                                      */
+/* ─────────────────────────────────────────────────────────── */
+function useVoronoiPolygons(stations: WeatherStation[], showCoverage: boolean) {
+  return useMemo(() => {
+    if (!showCoverage || stations.length < 3) return [];
+    
+    // Create turf points
+    const points = turf.featureCollection(
+      stations.map(s => turf.point([s.lng, s.lat], { id: s.id }))
+    );
+    
+    // Bounding box for Voronoi with a 30km buffer
+    const bbox = turf.bbox(turf.buffer(points, 30, { units: 'kilometers' }));
+    
+    // Generate Voronoi polygons
+    const voronoiPolygons = turf.voronoi(points, { bbox });
+    
+    // Map properties back to polygons since turf drops them
+    return voronoiPolygons.features.map((feature, idx) => {
+       if (!feature) return null;
+       // The voronoi function keeps the index order of the input points
+       feature.properties = { ...stations[idx] };
+       
+       // Calculate area for display in analytics
+       const areaKm2 = turf.area(feature) / 1000000;
+       
+       // Sync back the computed area to the store for AnalyticsDrawer to read (or just use it locally)
+       // This is a dirty hack, ideally we store this in Zustand but this is fast for UI.
+       stations[idx].coverage_radius_km = Math.round(Math.sqrt(areaKm2 / Math.PI)); 
+       
+       return feature;
+    }).filter(Boolean) as GeoJSON.Feature<GeoJSON.Polygon, any>[];
+  }, [stations, showCoverage]);
+}
+
+/* ─────────────────────────────────────────────────────────── */
 /*  Map 1 — Leaflet OSM (CSS dark)                            */
 /* ─────────────────────────────────────────────────────────── */
 
@@ -243,6 +281,9 @@ function OSMMap() {
   const showCoverage = useWeatherStore(s => s.layerMode) === "coverage";
   const { forecast, selectStation, selectedStationId, layerMode } = useWeatherStore();
   const stations = forecast?.stations ?? [];
+  
+  const voronoiFeatures = useVoronoiPolygons(stations, showCoverage);
+
   return (
     <MapContainer center={[18.5204, 73.8567]} zoom={11} className="w-full h-full af-dark-map" zoomControl={false} attributionControl={false}>
       <TileLayer
@@ -251,6 +292,28 @@ function OSMMap() {
         subdomains={["a","b","c"]} maxZoom={19}
       />
       <FitBounds />
+      
+      {showCoverage && voronoiFeatures.map((feature) => {
+        const isSelected = feature.properties.id === selectedStationId;
+        const color = getStationColor(feature.properties, layerMode);
+        return (
+          <GeoJSON 
+            key={`voronoi-${feature.properties.id}`}
+            data={feature}
+            pathOptions={{ 
+              color, 
+              fillColor: color, 
+              fillOpacity: isSelected ? 0.2 : 0.05, 
+              weight: isSelected ? 2 : 1, 
+              dashArray: "6 5" 
+            }}
+            eventHandlers={{
+              click: () => selectStation(feature.properties.id)
+            }}
+          />
+        );
+      })}
+
       {stations.map((station) => {
         const color = getStationColor(station, layerMode);
         const isSelected = station.id === selectedStationId;
@@ -258,10 +321,6 @@ function OSMMap() {
         const icon = buildLeafletIcon(color, isSelected, hasAlert, station.name);
         return (
           <LayerGroup key={station.id}>
-            {showCoverage && (
-              <Circle center={[station.lat, station.lng]} radius={(station.coverage_radius_km||10)*1000}
-                pathOptions={{ color, fillColor: color, fillOpacity: isSelected?0.12:0.05, weight: isSelected?2:1, dashArray: "6 5" }} />
-            )}
             {hasAlert && (
               <CircleMarker center={[station.lat, station.lng]} radius={26}
                 pathOptions={{ color:"#f87171", fillColor:"transparent", fillOpacity:0, weight:1.5, opacity:0.5, dashArray:"5 4" }} />
@@ -288,6 +347,8 @@ function GoogleMapView() {
   const stations = forecast?.stations ?? [];
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const { isLoaded, loadError } = useLoadScript({ googleMapsApiKey: GMAPS_KEY, id: "atmfusion-gmap" });
+
+  const voronoiFeatures = useVoronoiPolygons(stations, showCoverage);
 
   const onLoad = useCallback((map: google.maps.Map) => {
     if (stations.length > 0) {
@@ -327,6 +388,27 @@ function GoogleMapView() {
       }}
       onLoad={onLoad}
     >
+      {showCoverage && voronoiFeatures.map(feature => {
+        const isSelected = feature.properties.id === selectedStationId;
+        const color = getStationColor(feature.properties, layerMode);
+        const paths = feature.geometry.coordinates[0].map((coord: any) => ({ lat: coord[1], lng: coord[0] }));
+        
+        return (
+          <PolygonF
+             key={`voronoi-${feature.properties.id}`}
+             paths={paths}
+             options={{
+               strokeColor: color,
+               strokeOpacity: 0.8,
+               strokeWeight: isSelected ? 2 : 1,
+               fillColor: color,
+               fillOpacity: isSelected ? 0.2 : 0.05,
+             }}
+             onClick={() => selectStation(feature.properties.id)}
+          />
+        )
+      })}
+
       {stations.map((station) => {
         const color = getStationColor(station, layerMode);
         const isSelected = station.id === selectedStationId;
@@ -335,13 +417,6 @@ function GoogleMapView() {
 
         return (
           <div key={station.id}>
-            {showCoverage && (
-              <CircleF
-                center={{ lat: station.lat, lng: station.lng }}
-                radius={(station.coverage_radius_km||10)*1000}
-                options={{ strokeColor: color, strokeOpacity:0.6, strokeWeight: isSelected?2:1, fillColor: color, fillOpacity: isSelected?0.12:0.05, strokeDasharray:"6 5" }}
-              />
-            )}
             <MarkerF
               position={{ lat: station.lat, lng: station.lng }}
               icon={buildGoogleIcon(color, isSelected)}
@@ -416,4 +491,3 @@ export default function MainMap() {
     </div>
   );
 }
-
